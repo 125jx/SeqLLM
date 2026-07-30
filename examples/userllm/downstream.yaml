@@ -1,0 +1,66 @@
+# 路径、数据集，保存，epochs
+### Model
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/Qwen/Qwen3-8B-UserLLM-Google
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/movielens_warmup_no_initilize/checkpoint-500
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/amazon_warmup_no_initilize_6/checkpoint-96
+### Method
+stage: sft
+do_train: true
+finetuning_type: full
+original_vocab_size: 151643
+template: qwen
+predict_with_generate: false
+
+### Dataset:movielens\amazon\google：google_next_item
+dataset: movielens_fav_genre
+# mix_strategy: interleave_under
+# interleave_probs: 0.7,0.3
+
+streaming: false
+packing: true
+
+### Accelerator 配置
+accelerator_config:
+  dispatch_batches: false
+
+cutoff_len: 1024
+preprocessing_num_workers: 32
+
+# 数据集目录
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  # 注意：/apdcephfs/wechat_pay_bsm_gpu 在部分环境是只读挂载，datasets 缓存必须可写
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output 
+output_dir: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/movielens/movielens_fav_genre_no_semnatic
+# resume_from_checkpoint: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/google/google_next_item/checkpoint-592
+logging_steps: 100
+save_steps: 500
+save_total_limit: 10
+plot_loss: true
+overwrite_output_dir: true
+disable_tqdm: false
+
+### Training
+per_device_train_batch_size: 8
+gradient_accumulation_steps: 16
+learning_rate: 1.0e-5
+num_train_epochs: 1.0
+# max_steps: 5000
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+bf16: true
+ddp_timeout: 180000000
+report_to: none
+
+### DeepSpeed
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+eval_strategy: "no"
+
+
+### Memory optimization
+gradient_checkpointing: false

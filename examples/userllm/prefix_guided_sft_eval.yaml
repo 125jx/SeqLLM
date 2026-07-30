@@ -1,0 +1,66 @@
+### Model
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/movielens_warmup_no_initilize/checkpoint-500
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/qwen3_user_warmup_amazon/checkpoint-844
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/qwen3_user_warmup_movielens/checkpoint-1764
+
+### Method
+stage: sft
+do_train: false
+do_eval: true
+do_predict: false               # 显式声明，避免与 predict_with_generate 路径混淆
+finetuning_type: full
+# original_vocab_size: 151669  # 注释掉以避免走优先级2（会把全部added token作为候选集）
+template: qwen
+predict_with_generate: false
+# max_samples: 1000
+
+# eval_dataset: amazon_eval
+# eval_dataset: amazon_eval
+eval_dataset: movielens_eval
+streaming: false
+packing: false                  # 评估必须关闭 packing，否则一条样本里会有多段 response
+
+
+cutoff_len: 1024 
+preprocessing_num_workers: 32
+
+# 数据集目录
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output
+# output_dir: saves/qwen3_user_warmup_eval/amazon_eval
+output_dir: saves/qwen3_user_warmup_eval/movielens_eval_no_semnatic
+# output_dir: saves/qwen3_user_warmup_eval/movielens_eval
+overwrite_output_dir: true
+report_to: none
+disable_tqdm: false
+
+### Eval
+eval_strategy: "no"            # do_eval=true 时一次性跑完整个 eval_dataset 即可
+per_device_eval_batch_size: 16
+batch_eval_metrics: true       # 按 batch 累计 Recall 计数，避免一次性把 [N,T,K] 全部放到 host 端
+bf16: true
+ddp_timeout: 180000000
+
+### Recall@K
+# do_eval=true 且未启用 predict_with_generate / compute_accuracy 时，默认计算 Recall@K。
+# 候选词表优先级：
+# 1) 显式范围 [eval_candidate_start_id, eval_candidate_end_id)（推荐用于“只评估行为 token”）
+# 2) 否则 [original_vocab_size, vocab_size)
+# 3) 否则自动从 eval_dataset 推断（评估集中所有样本的首个 response token id 集合）
+recall_k_list: "1,5,10"
+
+# Amazon
+# <item_*> id range: [151669, 238768)
+# eval_candidate_start_id: 151669
+# eval_candidate_end_id: 238768
+
+# MovieLens
+# <movie_*> id range: [151669, 178947)
+eval_candidate_start_id: 151669
+eval_candidate_end_id: 178947
+

@@ -1,0 +1,80 @@
+### Model
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/qwen3_user_warmup_amazon/checkpoint-1477
+
+### Method
+stage: seq_align
+do_train: true
+finetuning_type: full
+original_vocab_size: 151643
+template: qwen
+predict_with_generate: false
+
+### Seq-Align 配置
+seq_align_behavior_token_start_id: 151675
+seq_align_projector_layers: 2
+seq_align_projector_dropout: 0.0
+seq_align_freeze_llm: false
+seq_align_projector_checkpoint: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/amazon_seq_align/checkpoint-60/projector
+
+### Dataset
+dataset: amazon_phase2
+packing: true
+
+# eval_dataset: user_seq_sft_feat_p998-999
+cutoff_len: 1024
+preprocessing_num_workers: 64
+
+# 本地数据集，不使用 streaming（直接加载到内存）
+streaming: false
+
+### Accelerator 配置
+accelerator_config:
+  dispatch_batches: false
+
+# 数据集目录
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  # 注意：/apdcephfs/wechat_pay_bsm_gpu 在部分环境是只读挂载，datasets 缓存必须可写
+### Output
+output_dir: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/test
+logging_steps: 100
+save_steps: 2000
+save_total_limit: 10
+plot_loss: true
+overwrite_output_dir: true
+disable_tqdm: false
+
+### Training
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-5
+num_train_epochs: 1.0
+# max_steps: 10000  # 使用 max_steps 控制大规模数据集的训练进度
+lr_scheduler_type: cosine
+warmup_steps: 500  # 固定 warmup 步数，而不是按比例
+bf16: true
+ddp_timeout: 180000000
+
+### DeepSpeed
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+## Eval (disabled)
+# per_device_eval_batch_size: 8
+eval_strategy: "no"
+# eval_steps: 2000
+
+### 训练期间统计 HR@K（≈ acc@k）
+# compute_behavior_hr: true
+# behavior_hr_k_list: "1,5"
+
+### Generation (用于行为 HR@K 评估，避免默认 max_new_tokens=1024 导致评估过慢)
+do_sample: false
+temperature: 1.0
+top_p: 1.0
+top_k: 0
+max_new_tokens: 128
+
+### Memory optimization
+gradient_checkpointing: true

@@ -1,0 +1,73 @@
+### Stage 2: 联合训练 behavior projector 与 LLM backbone
+
+### Model
+# Stage 1 结束时会在 output_dir 根目录保存可直接加载的最终模型。
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_warmup_embedding
+
+### Method
+stage: seq_align
+do_train: true
+finetuning_type: full
+template: qwen
+predict_with_generate: false
+
+### Seq-Align
+# Qwen3-8B-with-sid 中 SID token 的起始 id。
+seq_align_behavior_token_start_id: 151669
+seq_align_projector_layers: 2
+seq_align_projector_dropout: 0.0
+# false 表示 projector 与 LLM backbone 均参与训练。
+seq_align_freeze_llm: false
+# 默认从零初始化 projector；如需接续 projector-only checkpoint，可取消下一行注释。
+# seq_align_projector_checkpoint: /path/to/checkpoint/projector
+
+### Dataset
+dataset: onerec_align_phase1_500w, onerec_align_phase2
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+streaming: false
+packing: false
+cutoff_len: 1024
+preprocessing_num_workers: 64
+
+### Accelerator
+accelerator_config:
+  dispatch_batches: false
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output
+output_dir: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_projector_llm
+logging_steps: 100
+save_steps: 1000
+save_total_limit: 10
+plot_loss: true
+overwrite_output_dir: false
+disable_tqdm: false
+
+### Training
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-5
+num_train_epochs: 1.0
+lr_scheduler_type: cosine
+warmup_steps: 80
+bf16: true
+ddp_timeout: 180000000
+report_to: none
+
+### DeepSpeed
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+### Eval / Generation / Memory
+eval_strategy: "no"
+do_sample: false
+temperature: 1.0
+top_p: 1.0
+top_k: 0
+max_new_tokens: 128
+gradient_checkpointing: true
+
+# resume_from_checkpoint: /path/to/onerec_projector_llm/checkpoint-xxx
+# ignore_data_skip: false

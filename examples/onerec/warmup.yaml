@@ -1,0 +1,68 @@
+### Stage 1: 仅训练新增 SID token 的 embedding / lm_head 行
+
+### Model
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/Qwen/Qwen3-8B-with-sid
+
+### Method
+stage: pt
+do_train: true
+finetuning_type: freeze
+freeze_trainable_layers: 0
+freeze_extra_modules: embed_tokens,lm_head
+# SID token 从 151669 开始；adapter.py 会将此前各行的梯度置零。
+original_vocab_size: 151669
+template: qwen
+predict_with_generate: false
+
+### Dataset
+dataset: pretrain_video_rec
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+streaming: false
+packing: false
+pt_end_token: pad
+cutoff_len: 3072
+preprocessing_num_workers: 128
+
+### Accelerator
+accelerator_config:
+  dispatch_batches: false
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output
+output_dir: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_warmup_embedding
+logging_steps: 10
+save_steps: 400
+save_total_limit: 10
+plot_loss: true
+overwrite_output_dir: false
+disable_tqdm: false
+
+### Training
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+learning_rate: 2.0e-4
+weight_decay: 0.1
+max_grad_norm: 1.0
+adam_beta1: 0.9
+adam_beta2: 0.95
+num_train_epochs: 2.0
+warmup_ratio: 0.1
+lr_scheduler_type: cosine
+seed: 19260817
+data_seed: 19260817
+bf16: true
+ddp_timeout: 180000000
+report_to: none
+
+### DeepSpeed
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+### Eval / Memory
+eval_strategy: "no"
+gradient_checkpointing: true
+
+# resume_from_checkpoint: /path/to/onerec_warmup_embedding/checkpoint-xxx
+# ignore_data_skip: false

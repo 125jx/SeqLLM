@@ -1,0 +1,87 @@
+### Model
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/Qwen/Qwen3-8B-with-sid
+
+stage: sft
+do_train: true
+finetuning_type: full
+original_vocab_size: 151643
+template: qwen
+predict_with_generate: false
+
+
+dataset: general_data, general_data
+
+streaming: false
+packing: false
+
+pt_end_token: pad
+
+
+user_balanced_loss: true
+user_balanced_loss_datasets: video_rec
+user_id_key: uid
+user_balanced_loss_normalize: mean1
+
+### Accelerator 配置 
+accelerator_config:
+  dispatch_batches: false
+
+cutoff_len: 3072
+preprocessing_num_workers: 128
+dataloader_num_workers: 64
+
+# HF_DATASETS_CACHE 在共享 cephfs 上 -> 开启全局 main_process_first：
+# 只有 global rank0 做预处理(权重统计+tokenize)并写共享缓存，其余 63 个 rank 等待后直接读缓存，
+# 全局只 tokenize 一次（否则默认按节点，每个节点都会重复跑一遍完整数据）。
+data_shared_file_system: true
+
+# 数据集目录
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  # 注意：/apdcephfs/wechat_pay_bsm_gpu 在部分环境是只读挂载，datasets 缓存必须可写
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output 
+output_dir: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_sft_100k_mixed_single
+logging_steps: 10
+save_steps: 500
+save_total_limit: 10
+plot_loss: false
+overwrite_output_dir: false
+disable_tqdm: false
+
+### Training（与 openonerec_pt.yaml 训练超参对齐）
+
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+
+learning_rate: 7.0e-5
+weight_decay: 0.1
+max_grad_norm: 1.0
+adam_beta1: 0.9
+adam_beta2: 0.95
+
+num_train_epochs: 1.0
+warmup_ratio: 0.1
+
+# scheduler：保留 HF 原生 cosine（openonerec 的 cosine_with_min_lr 依赖 onerec_min_lr 字段，pt 路径不支持）
+lr_scheduler_type: cosine
+
+seed: 19260817
+data_seed: 19260817
+
+bf16: true
+ddp_timeout: 36000
+report_to: none
+
+### DeepSpeed
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+## Eval (disabled)
+eval_strategy: "no"
+gradient_checkpointing: true
+
+# resume_from_checkpoint: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_sft_100k_mixed/checkpoint-1106
+# ignore_data_skip: false

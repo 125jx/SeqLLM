@@ -1,0 +1,62 @@
+### Video-Rec Evaluation (OpenOneRec-aligned)
+#
+# 与 examples/onerec/warmup.yaml / pretrain.yaml 中训练用字段对齐。
+# 用法:
+#   bash examples/onerec/run_eval_video_rec.sh
+# 或:
+#   python scripts/eval_video_rec.py --config examples/onerec/eval_video_rec.yaml
+#
+# 对接关系：
+#   `model_name_or_path` 通常 = 训练 YAML 中 `output_dir` 下某个 checkpoint
+#   `template`           = 训练时使用的 chat 模板（onerec 系列 = qwen）
+#   `dataset`            = data/dataset_info.json 中注册名
+
+### Model ###################################################################
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/Qwen/OneRec-8B-pretrain
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/video_rec_rl_loss/video_rec_rl_ckpt_120
+# model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/onerec_sft_100k_mixed_single/checkpoint-1666
+
+### Chat Template ###########################################################
+template: qwen
+# 评测自家训练 ckpt 时：留空，直接用 tokenizer.chat_template（与训练一致）
+# 评测外部模型（如官方 OneRec-8B）时显式指：
+# chat_template_file: /apdcephfs/zjx121/apdcephfs_cq11/share_303717182/bobjxzhang/OpenOneRec/benchmarks/benchmark/tasks/v1_0/qwen3_soft_switch.jinja2
+chat_template_file: null
+
+### Data ####################################################################
+dataset: video_rec_eval
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+# 兜底：直接传 jsonl 路径（与 dataset 二选一）；留空表示走 dataset 注册
+data_path: null
+sample_size: 5000
+
+### Output ##################################################################
+output_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/examples/onerec/results/video_rec_rl_ckpt_294
+
+### Beam Search (OpenOneRec eval_script.sh 官方配置) ########################
+num_beams: 64
+max_new_tokens: 3
+k_values: [1, 32]
+batch_size: 128
+
+### Misc ####################################################################
+prompt_token: "<|sid_begin|>"
+enable_thinking: false
+dedup_mode: string
+
+### Constrained Decoding (可选) #############################################
+# none = 与 OpenOneRec 官方 eval 完全对齐
+# subtree = codebook 子树约束 beam search（需先跑 scripts/build_codebook.py 生成 pickle）
+constrained: none
+codebook_path: ""
+
+### vLLM ####################################################################
+tensor_parallel_size: 8
+gpu_memory_utilization: 0.90
+dtype: bfloat16
+max_model_len: null
+max_logprobs: 384
+trust_remote_code: true
+enable_prefix_caching: true
+enable_chunked_prefill: true
+seed: null

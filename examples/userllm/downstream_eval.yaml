@@ -1,0 +1,72 @@
+# downstream 评估专用配置（amazon_fav_category_eval）
+### Model
+model_name_or_path: /apdcephfs_cq11/share_303717182/bobjxzhang/saves/movielens/movielens_fav_genre_no_semnatic/checkpoint-421
+
+### Method
+stage: sft
+do_train: false
+do_eval: true
+do_predict: false
+finetuning_type: full
+original_vocab_size: 151669
+template: qwen
+
+### Dataset
+dataset: null
+streaming: false
+packing: false
+
+### Accelerator 配置
+accelerator_config:
+  dispatch_batches: false
+
+cutoff_len: 1024
+preprocessing_num_workers: 16
+
+# 数据集目录
+dataset_dir: /apdcephfs/private_bobjxzhang/llm_based_user_sequence_modelling/data
+
+env:
+  LLAMAFACTORY_AUTO_ADD_BEH_TOKENS: "0"
+  HF_DATASETS_CACHE: "/apdcephfs_cq11/share_303717182/guilinli/cache/huggingface/datasets"
+
+### Output
+output_dir: saves/movielens/movielens_fav_genre_eval_no_semantic
+logging_steps: 100
+overwrite_output_dir: true
+disable_tqdm: false
+
+### Eval（fav_category 生效）
+eval_dataset: movielens_fav_genre_eval
+per_device_eval_batch_size: 16
+# # amazon
+# # eval_fav_start_id: 238768
+# # eval_fav_end_id: 239212
+
+# # movielens
+eval_fav_start_id: 178947
+eval_fav_end_id: 180289
+
+# google
+# eval_fav_start_id: 403776
+# eval_fav_end_id: 406899
+
+eval_strategy: "no"
+
+# --- review_gen 切换模板（按需取消注释） ---
+# eval_dataset: amazon_review_gen_eval
+# per_device_eval_batch_size: 16
+# predict_with_generate: true
+# max_new_tokens: 64
+# do_sample: false
+# temperature: 1.0
+# top_p: 1.0
+# eval_strategy: "no"
+
+### Runtime
+bf16: true
+ddp_timeout: 180000000
+report_to: none
+
+### Memory optimization
+gradient_checkpointing: false
