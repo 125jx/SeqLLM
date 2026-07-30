@@ -1,0 +1,20 @@
+{
+  "general_data":{
+    "file_name":"openonerec/data/OpenOneRec_SFT_100k.jsonl",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    }
+  },
+  "sft_video_rec":{
+    "file_name":"openonerec/data/sft_jsonl/sft_video_rec.jsonl",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    }
+  }
+
+
+}
