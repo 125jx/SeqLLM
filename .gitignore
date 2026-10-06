@@ -194,3 +194,7 @@ wandb/
 swanlog/
 generated_predictions.jsonl
 predictions_score.json
+
+# Local merchant-risk evaluation scripts; do not publish them.
+/evaluation/eval_merchant_risk/eval_qwen.py
+/evaluation/eval_merchant_risk/run_eval_qwen.sh
