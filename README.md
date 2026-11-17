@@ -2,6 +2,8 @@
 
 [![English](https://img.shields.io/badge/English-blue)](README.md) [![简体中文](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue)](README_zh.md)
 
+🎉 Excited to share that our paper has been accepted to the **KDD 2027 Applied Data Science (ADS) Track**! 🥳
+
 A codebase for sequential recommendation and user behavior modeling, built on [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory).
 
 This repository extends a general LLM fine-tuning framework with two end-to-end recommendation workflows:
