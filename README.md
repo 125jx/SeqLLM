@@ -228,6 +228,8 @@ LOG_FILE=log/onerec_sft.log bash scripts/run.sh
 
 Each stage normally passes its `output_dir` to the next stage as `model_name_or_path`. If resuming from an intermediate checkpoint, update the later YAML files accordingly.
 
+We release the checkpoint obtained by fine-tuning the original OpenOneRec model on Video-Rec: https://huggingface.co/pluSstar/openonerec-videorec-sft
+
 ## Evaluation
 
 ### Language ability
